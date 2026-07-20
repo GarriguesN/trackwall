@@ -12,6 +12,18 @@
   --ngl-border: #d8d3d5;
   --ngl-success: #4f9d69;
   --ngl-black: #000000;
+
+  /* CSS vars compatibles con SubTrack/RateGuard */
+  --bg-primary: #f0edee;
+  --bg-secondary: #e6e2e3;
+  --bg-card: #ffffff;
+  --text-primary: #211a1e;
+  --text-secondary: #4a4548;
+  --text-muted: #8a8588;
+  --border-color: #d8d3d5;
+  --accent: #c3423f;
+  --accent-hover: #a83633;
+  --success: #4f9d69;
 }
 
 * { box-sizing: border-box; }

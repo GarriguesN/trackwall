@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { Plus, Trash2, Car, ToggleLeft, ToggleRight, AlertCircle, Search, Loader2, ChevronDown, X, Calendar, Euro, Gauge } from 'lucide-react';
+import { Plus, Trash2, Car, ToggleLeft, ToggleRight, AlertCircle, Search, Loader2, X, Calendar, Euro, Gauge } from 'lucide-react';
 
 interface Car {
   id: number; brand: string; model: string; year_from: number | null;
@@ -36,31 +36,29 @@ function BrandInput({ value, onChange }: { value: string; onChange: (v: string) 
     return () => document.removeEventListener('mousedown', handleClick);
   }, [showModal]);
 
-  const hasLogos = allLogos.length > 0;
-
   return (
     <>
       <div className="relative">
-        <input value={value} onChange={e => onChange(e.target.value)} className="input" placeholder="Brand *" required />
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer" onClick={() => hasLogos && setShowModal(!showModal)}>
-          {searching ? <Loader2 size={16} className="animate-spin text-[var(--ngl-ink-muted)]" />
-          : logoUrl ? <div className="relative flex items-center gap-1"><img src={logoUrl} alt="" className="w-5 h-5 rounded object-contain" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />{hasLogos && <ChevronDown size={12} className="text-[var(--ngl-ink-muted)]" />}</div>
-          : <Search size={16} className="text-[var(--ngl-ink-muted)]" />}
+        <input value={value} onChange={e => onChange(e.target.value)} className="input w-full" placeholder="Brand *" required style={{ paddingLeft: '2.5rem' }} />
+        <div className="absolute left-3 top-1/2 -translate-y-1/2 cursor-pointer" onClick={() => allLogos.length > 0 && setShowModal(true)} title={allLogos.length > 0 ? `Choose logo (${allLogos.length} available)` : 'Searching logo...'}>
+          {searching ? <Loader2 size={16} className="animate-spin text-[var(--text-muted)]" />
+          : logoUrl ? <img src={logoUrl} alt="" className="w-5 h-5 rounded object-contain hover:opacity-80 transition-opacity" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          : <Search size={16} className="text-[var(--text-muted)]" />}
         </div>
       </div>
-      {showModal && hasLogos && (
+      {showModal && allLogos.length > 0 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div ref={modalRef} className="bg-[var(--ngl-surface)] border border-[var(--ngl-border)] rounded-xl shadow-xl max-w-sm w-full p-4">
+          <div ref={modalRef} className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl shadow-xl max-w-sm w-full p-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-[var(--ngl-ink)]">Select Logo</h3>
-              <button onClick={() => setShowModal(false)} className="text-[var(--ngl-ink-muted)] hover:text-[var(--ngl-ink)]"><X size={18} /></button>
+              <h3 className="text-sm font-semibold text-[var(--text-primary)]">Select Logo</h3>
+              <button onClick={() => setShowModal(false)} className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"><X size={18} /></button>
             </div>
-            <p className="text-xs text-[var(--ngl-ink-secondary)] mb-4">Choose the best logo for &quot;{value}&quot;:</p>
+            <p className="text-xs text-[var(--text-secondary)] mb-4">Choose the best logo for &quot;{value}&quot;:</p>
             <div className="grid grid-cols-3 gap-3">
               {allLogos.map((url, i) => (
                 <button key={i} onClick={() => { setLogoUrl(url); setShowModal(false); }}
-                  className={`flex items-center justify-center p-3 rounded-lg border transition-all ${url === logoUrl ? 'border-[var(--ngl-accent)] bg-[var(--ngl-accent)]/10' : 'border-[var(--ngl-border)] hover:border-[var(--ngl-accent)] hover:bg-[var(--ngl-bg-alt)]'}`}>
-                  <img src={url} alt="" className="w-10 h-10 object-contain" onError={e => { (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%239ca3af\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 8v4M12 16h.01\"/></svg>'; }} />
+                  className={`flex items-center justify-center p-3 rounded-lg border transition-all ${url === logoUrl ? 'border-[var(--accent)] bg-[var(--accent)]/10 ring-1 ring-[var(--accent)]' : 'border-[var(--border-color)] hover:border-[var(--accent)] hover:bg-[var(--bg-secondary)]'}`}>
+                  <img src={url} alt={`Logo ${i + 1}`} className="w-10 h-10 object-contain" onError={e => { (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%239ca3af\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 8v4M12 16h.01\"/></svg>'; }} />
                 </button>
               ))}
             </div>
