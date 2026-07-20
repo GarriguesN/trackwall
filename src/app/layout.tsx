@@ -27,15 +27,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico" />
       </head>
-      <body className="min-h-screen flex flex-col">
-        <ThemeProvider>
-          <PinGate>
-            <NavBar />
-            <main className="flex-1 w-full mx-auto px-4 sm:px-6 py-6 pb-[calc(3rem+env(safe-area-inset-bottom))] sm:pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
-              {children}
-            </main>
-          </PinGate>
-        </ThemeProvider>
+      <body className="min-h-dvh flex flex-col">
+        <div className="app-container">
+          <ThemeProvider>
+            <PinGate>
+              <NavBar />
+              <main className="flex-1 w-full mx-auto px-4 sm:px-6 py-6 pb-[calc(3rem+env(safe-area-inset-bottom))] sm:pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+                {children}
+              </main>
+            </PinGate>
+          </ThemeProvider>
+        </div>
       </body>
     </html>
   );

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { listCars, createCar, getDb, getStats } from '@/lib/db';
+import { listCars, createCar, findCarByBrandModel, getDb, getStats } from '@/lib/db';
 
 export async function GET() {
   const cars = listCars();
@@ -18,6 +18,11 @@ export async function POST(request: NextRequest) {
   const count = (getDb().prepare('SELECT COUNT(*) as c FROM cars WHERE enabled = 1').get() as any).c;
   if (count >= 3) {
     return NextResponse.json({ error: 'Maximum 3 active cars allowed. Disable one first.' }, { status: 400 });
+  }
+
+  const existing = findCarByBrandModel(brand, model);
+  if (existing) {
+    return NextResponse.json({ error: 'Car already exists' }, { status: 400 });
   }
 
   const car = createCar(brand, model, year_from || null, year_to || null, max_price, max_km || null, fuel || '');

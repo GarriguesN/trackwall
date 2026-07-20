@@ -109,6 +109,12 @@ export function getCar(id: number): Car | null {
   return getDb().prepare('SELECT * FROM cars WHERE id = ?').get(id) as Car | null;
 }
 
+export function findCarByBrandModel(brand: string, model: string): Car | null {
+  return getDb().prepare(
+    'SELECT * FROM cars WHERE LOWER(brand) = LOWER(?) AND LOWER(model) = LOWER(?)'
+  ).get(brand, model) as Car | null;
+}
+
 export function createCar(brand: string, model: string, yearFrom: number | null, yearTo: number | null, maxPrice: number, maxKm: number | null, fuel: string): Car {
   const result = getDb().prepare(
     'INSERT INTO cars (brand, model, year_from, year_to, max_price, max_km, fuel) VALUES (?, ?, ?, ?, ?, ?, ?)'
