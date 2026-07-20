@@ -1,12 +1,74 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Plus, Trash2, Car, ToggleLeft, ToggleRight, AlertCircle } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { Plus, Trash2, Car, ToggleLeft, ToggleRight, AlertCircle, Search, Loader2, ChevronDown, X, Calendar, Euro, Gauge } from 'lucide-react';
 
 interface Car {
   id: number; brand: string; model: string; year_from: number | null;
   year_to: number | null; max_price: number; max_km: number | null;
   fuel: string; enabled: number; created_at: string;
+}
+
+function BrandInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [logoUrl, setLogoUrl] = useState('');
+  const [allLogos, setAllLogos] = useState<string[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!value.trim()) { setLogoUrl(''); setAllLogos([]); return; }
+    const timer = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const res = await fetch(`/api/logo?name=${encodeURIComponent(value.trim())}`);
+        if (res.ok) { const d = await res.json(); setLogoUrl(d.logo || ''); setAllLogos(d.logos || []); }
+      } catch {}
+      setSearching(false);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [value]);
+
+  useEffect(() => {
+    if (!showModal) return;
+    function handleClick(e: MouseEvent) { if (modalRef.current && !modalRef.current.contains(e.target as Node)) setShowModal(false); }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showModal]);
+
+  const hasLogos = allLogos.length > 0;
+
+  return (
+    <>
+      <div className="relative">
+        <input value={value} onChange={e => onChange(e.target.value)} className="input" placeholder="Brand *" required />
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer" onClick={() => hasLogos && setShowModal(!showModal)}>
+          {searching ? <Loader2 size={16} className="animate-spin text-[var(--ngl-ink-muted)]" />
+          : logoUrl ? <div className="relative flex items-center gap-1"><img src={logoUrl} alt="" className="w-5 h-5 rounded object-contain" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />{hasLogos && <ChevronDown size={12} className="text-[var(--ngl-ink-muted)]" />}</div>
+          : <Search size={16} className="text-[var(--ngl-ink-muted)]" />}
+        </div>
+      </div>
+      {showModal && hasLogos && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div ref={modalRef} className="bg-[var(--ngl-surface)] border border-[var(--ngl-border)] rounded-xl shadow-xl max-w-sm w-full p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-[var(--ngl-ink)]">Select Logo</h3>
+              <button onClick={() => setShowModal(false)} className="text-[var(--ngl-ink-muted)] hover:text-[var(--ngl-ink)]"><X size={18} /></button>
+            </div>
+            <p className="text-xs text-[var(--ngl-ink-secondary)] mb-4">Choose the best logo for &quot;{value}&quot;:</p>
+            <div className="grid grid-cols-3 gap-3">
+              {allLogos.map((url, i) => (
+                <button key={i} onClick={() => { setLogoUrl(url); setShowModal(false); }}
+                  className={`flex items-center justify-center p-3 rounded-lg border transition-all ${url === logoUrl ? 'border-[var(--ngl-accent)] bg-[var(--ngl-accent)]/10' : 'border-[var(--ngl-border)] hover:border-[var(--ngl-accent)] hover:bg-[var(--ngl-bg-alt)]'}`}>
+                  <img src={url} alt="" className="w-10 h-10 object-contain" onError={e => { (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%239ca3af\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 8v4M12 16h.01\"/></svg>'; }} />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
 }
 
 export default function CarsPage() {
@@ -86,30 +148,39 @@ export default function CarsPage() {
       {showForm && (
         <form onSubmit={handleSubmit} className="card space-y-3">
           <p className="text-xs font-semibold text-[var(--ngl-ink-secondary)] uppercase tracking-wider">New Search</p>
+
+          {/* Brand + Model row */}
           <div className="grid grid-cols-2 gap-3">
+            <BrandInput value={form.brand} onChange={v => setForm({...form, brand: v})} />
             <div className="relative">
-              <input value={form.brand} onChange={e => setForm({...form, brand: e.target.value})} className="input text-sm" placeholder="Brand *" required />
-            </div>
-            <div className="relative">
-              <input value={form.model} onChange={e => setForm({...form, model: e.target.value})} className="input text-sm" placeholder="Model *" required />
+              <input value={form.model} onChange={e => setForm({...form, model: e.target.value})} className="input input-plain text-sm" style={{ padding: '.625rem .75rem' }} placeholder="Model *" required />
             </div>
           </div>
+
+          {/* Year from + Year to */}
           <div className="grid grid-cols-2 gap-3">
             <div className="relative">
-              <input value={form.year_from} onChange={e => setForm({...form, year_from: e.target.value})} className="input input-plain text-sm" placeholder="Year from" type="number" />
+              <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ngl-ink-muted)] pointer-events-none" />
+              <input value={form.year_from} onChange={e => setForm({...form, year_from: e.target.value})} className="input text-sm" placeholder="Year from" type="number" />
             </div>
             <div className="relative">
-              <input value={form.year_to} onChange={e => setForm({...form, year_to: e.target.value})} className="input input-plain text-sm" placeholder="Year to" type="number" />
+              <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ngl-ink-muted)] pointer-events-none" />
+              <input value={form.year_to} onChange={e => setForm({...form, year_to: e.target.value})} className="input text-sm" placeholder="Year to" type="number" />
             </div>
           </div>
+
+          {/* Price + KM */}
           <div className="grid grid-cols-2 gap-3">
             <div className="relative">
+              <Euro size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ngl-ink-muted)] pointer-events-none" />
               <input value={form.max_price} onChange={e => setForm({...form, max_price: e.target.value})} className="input text-sm" placeholder="Max price (€) *" type="number" required />
             </div>
             <div className="relative">
-              <input value={form.max_km} onChange={e => setForm({...form, max_km: e.target.value})} className="input input-plain text-sm" placeholder="Max km" type="number" />
+              <Gauge size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ngl-ink-muted)] pointer-events-none" />
+              <input value={form.max_km} onChange={e => setForm({...form, max_km: e.target.value})} className="input text-sm" placeholder="Max km" type="number" />
             </div>
           </div>
+
           {error && <p className="text-xs text-red-500">{error}</p>}
           <button type="submit" className="btn btn-primary w-full"><Car size={16} /> Add Car</button>
         </form>

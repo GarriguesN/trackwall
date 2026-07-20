@@ -12,7 +12,7 @@ npm run build
 
 echo "📦 Preparing standalone..."
 mkdir -p .next/standalone/trackwall/.next/static
-cp -r .next/static .next/standalone/trackwall/.next/static/
+cp -r .next/static .next/standalone/trackwall/.next/
 echo "🚀 Deploying to $REMOTE..."
 tar czf - -C .next/standalone/trackwall --exclude .next/static .next server.js package.json | \
   ssh "$REMOTE" "cd $REMOTE_DIR && rm -rf .next/static server.js 2>/dev/null; tar xzf -"
